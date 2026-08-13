@@ -1,11 +1,12 @@
-name: Test
+name: VPS Hunter Simple
 
 on:
   workflow_dispatch:
 
 jobs:
-  test:
+  hunter:
     runs-on: ubuntu-latest
     steps:
-      - name: Test
-        run: echo "Hello World"
+      - name: Send Telegram
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot8857993443:AAFeHfRq_9qjcPCXWldiFDwNCMvlH_Khq24/sendMessage" -d "chat_id=7576216084&text=✅ Test from GitHub Actions!"
